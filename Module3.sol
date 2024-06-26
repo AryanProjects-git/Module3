@@ -1,40 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-contract World_Health_Organization{
-    address private chief;
-    address private country_address;
-    string public TokenName = "Health_Fund_Token";
-    string public Symbol = "HFT";
-    uint public TotalSupply =0;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-    mapping (address => uint) public balances;
+// Contract WHO inherits all the properties of ERC20 
+contract WHO is ERC20 {
+    address public chief;
 
-    constructor(){
+    // Token name is HealthToken and symbol is HT
+    constructor(uint256 initialSupply) ERC20("HealthToken", "HT") {
+        _mint(msg.sender, initialSupply);
         chief = msg.sender;
     }
-    
-    modifier onlyChief(){
-        require(msg.sender == chief ,"only WHO chief can mint the tokens");
+
+    modifier onlychief() {
+        require(msg.sender == chief, "You are not the WHO chief");
         _;
     }
 
-    function Generate_HFT(uint No_Of_HFT, address _country_address) onlyChief public {
-         TotalSupply = TotalSupply + No_Of_HFT;
-         balances[_country_address] =  TotalSupply;
-         
-    }
-    
-    function Transfer_HFT(uint No_Of_HFT , address Receiver_Country ) public {
-         require(No_Of_HFT <= balances[msg.sender], "Insufficient HFT");
-         balances[Receiver_Country] = balances[Receiver_Country] + No_Of_HFT;
-         balances[msg.sender] = balances[msg.sender] - No_Of_HFT ;
-
+    // Only WHO chief can mint tokens at receiver address
+    function mint(address receiver, uint256 amount) external onlychief {
+        _mint(receiver, amount);
     }
 
-    function Burn_HFT(uint No_Of_HFT) public {
-        require(No_Of_HFT <= balances[msg.sender], "Inufficient Token");
-        balances[msg.sender] = balances[msg.sender]- No_Of_HFT;
+    // take 2 parameter from which account and how many token
+    function burn(address from, uint256 amount) external {
+        _burn(from, amount);
     }
 
+    // takes 2 parameter receiver address and amount
+    function transfer(address receiver, uint256 amount) public override returns (bool) {
+        _transfer(msg.sender, receiver, amount);
+        return true;
+    }
 }
